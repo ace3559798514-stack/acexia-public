@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#f5f4ee">
+  <meta name="description" content="了解 ACE 的空间，并通过联系表单留下建议、问题或想说的话。">
+  <title>关于这里 · 联系我 · ACE 的空间</title>
+  <link rel="canonical" href="https://acexia.xyz/about/">
+  <link rel="stylesheet" href="/shared/site-shell.css">
+  <link rel="stylesheet" href="/contact.css">
+  <script type="module" src="/contact.js"></script>
+<style>
+*{box-sizing:border-box}html{color-scheme:light}body{margin:0;background:#f5f4ee;color:#18332d;font:15px/1.6 Inter,"Segoe UI","Microsoft YaHei",system-ui,sans-serif}a{color:inherit}button,input,textarea{font:inherit}.skip{position:fixed;top:8px;left:8px;z-index:1000;padding:10px 15px;background:#18332d;color:#fffef9;border-radius:8px;transform:translateY(-160%)}.skip:focus{transform:none}.ace-contact-footer{display:flex;flex-wrap:wrap;align-items:center;gap:22px;border-top:1px solid #d9dfd4;padding-top:26px;color:#7b866f;font-size:11px}.eyebrow{display:flex;align-items:center;gap:9px}.eyebrow>span{width:6px;height:6px;border-radius:50%;background:#8aa763}
+</style>
+</head>
+<body class="home" data-ace-page="about">
+  <a class="skip" href="#about-main">跳到关于与联系表单</a>
+  <header class="ace-site-header" data-ace-site-header>
+  <div class="ace-site-header__inner">
+    <a class="ace-site-brand" href="/" aria-label="ACE 的空间首页"><span class="ace-site-brand__mark" aria-hidden="true">✦</span><span class="ace-site-brand__name">ACE 的空间</span></a>
+    <nav class="ace-primary-nav" aria-label="快速导航">
+      <ul class="ace-primary-nav__list">
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/play/">一起玩</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/radar/">折扣雷达</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/connect/">通话与信箱</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/files/">文件传输</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/companion/">设备中心</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/support/">支持与隐私</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/about/" aria-current="page">关于 / 联系我</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+  <main id="about-main" class="ace-contact-main">
+    <section class="ace-contact-intro" aria-labelledby="about-title">
+      <div class="eyebrow"><span></span>A LITTLE SPACE / 关于这里</div>
+      <h1 id="about-title">把喜欢的放在一起，<br><span>也听听你的声音。</span></h1>
+      <p>这里是 ACE 的个人空间。一起玩游戏、发现折扣，也让通话、声音留言与日常的小工具有个方便抵达的地方。</p>
+    </section>
+    <div class="ace-contact-layout">
+      <aside class="ace-contact-note" aria-labelledby="contact-note-title">
+        <span class="ace-contact-star" aria-hidden="true">✦</span>
+        <p class="ace-contact-eyebrow">LET'S KEEP IN TOUCH</p>
+        <h2 id="contact-note-title">有想法，就留一句。</h2>
+        <p>分享建议、反馈遇到的问题，或者聊聊你喜欢的作品。写在右边的表单里，就可以联系我。</p>
+        <p>无需登录。请填写能收到回复的邮箱；名字、邮箱和留言会用于处理这次联系。</p>
+        <a href="/support/">查看支持与隐私说明 ↗</a>
+      </aside>
+      <section id="contact" class="ace-contact-panel" aria-labelledby="contact-title">
+        <div class="ace-contact-panel-heading"><p class="ace-contact-eyebrow">CONTACT / 留言</p><h2 id="contact-title">联系我</h2></div>
+        <form id="contact-form" novalidate>
+          <fieldset id="contact-fields" class="ace-contact-fields">
+            <div class="ace-contact-field">
+              <label for="contact-name">你的名字 <span>必填</span></label>
+              <input id="contact-name" name="name" type="text" autocomplete="name" minlength="1" maxlength="80" required aria-describedby="contact-name-error">
+              <p id="contact-name-error" class="ace-contact-field-error" hidden></p>
+            </div>
+            <div class="ace-contact-field">
+              <label for="contact-email">回复邮箱 <span>必填</span></label>
+              <input id="contact-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" required aria-describedby="contact-email-help contact-email-error">
+              <p id="contact-email-help" class="ace-contact-field-help">用于回复这次留言，不会显示在公开页面。</p>
+              <p id="contact-email-error" class="ace-contact-field-error" hidden></p>
+            </div>
+            <div class="ace-contact-field">
+              <div class="ace-contact-message-heading"><label for="contact-message">想说的话 <span>必填</span></label><span id="contact-message-count">0 / 5000</span></div>
+              <textarea id="contact-message" name="message" rows="7" minlength="1" maxlength="5000" required aria-describedby="contact-message-error"></textarea>
+              <p id="contact-message-error" class="ace-contact-field-error" hidden></p>
+            </div>
+            <div class="ace-contact-honeypot" aria-hidden="true">
+              <label for="contact-website">Website</label>
+              <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off" maxlength="200">
+            </div>
+          </fieldset>
+          <div class="ace-contact-verification">
+            <div id="contact-turnstile"></div>
+            <p id="contact-verification-status" class="ace-contact-field-help">验证会在联系服务可用时显示。</p>
+            <button id="contact-retry" class="ace-contact-retry" type="button" hidden>重新检查 / 验证</button>
+          </div>
+          <button id="contact-submit" class="ace-contact-submit" type="submit" disabled>发送留言 <span aria-hidden="true">↗</span></button>
+          <p id="contact-status" class="ace-contact-status" role="status" aria-live="polite" aria-atomic="true">正在检查联系服务…</p>
+          <noscript><p class="ace-contact-status">请启用 JavaScript，完成验证后发送留言。</p></noscript>
+        </form>
+      </section>
+    </div>
+    <footer class="ace-contact-footer"><span>ACE 的空间 · 把喜欢的放在一起</span><a href="https://github.com/ace3559798514-stack/acexia-public" target="_blank" rel="noopener noreferrer">公共界面代码 ↗</a><a href="/">返回首页 ↗</a></footer>
+  </main>
+</body>
+</html>

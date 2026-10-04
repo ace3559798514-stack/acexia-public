@@ -1,0 +1,467 @@
+@charset "UTF-8";
+
+/* Shared chrome is self-contained; page adjustments require an explicit page. */
+body[data-ace-page] {
+  --ace-shell-width: 1264px;
+  --ace-shell-gutter: 48px;
+  --ace-page-space: 40px;
+  --ace-page-title-size: 36px;
+}
+
+.ace-site-header,
+.ace-site-header *,
+.ace-communication-nav,
+.ace-communication-nav * {
+  box-sizing: border-box;
+}
+
+.ace-site-header {
+  display: block;
+  flex: 0 0 auto;
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #d9dfd4;
+  background: #f5f4ee;
+  color: #18332d;
+  color-scheme: light;
+  font: 500 13px/1.5 Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.ace-site-header__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--ace-shell-width, 1264px);
+  min-height: 88px;
+  margin: 0 auto;
+  padding: 16px var(--ace-shell-gutter, 48px);
+}
+
+.ace-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  min-width: 0;
+  min-height: 44px;
+  color: #18332d;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: .025em;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.ace-site-brand__mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #18332d;
+  color: #d9f69d;
+  font: 25px/1 system-ui, sans-serif;
+}
+
+.ace-primary-nav {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #bcc9b2 transparent;
+  scroll-padding-inline: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ace-primary-nav__list {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+}
+
+.ace-primary-nav__item {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+}
+
+.ace-primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #586d5e;
+  font: inherit;
+  font-weight: 550;
+  line-height: 1.5;
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.ace-primary-link:hover {
+  background: #e9edde;
+  color: #18332d;
+}
+
+.ace-primary-link[aria-current="page"] {
+  border-color: #cfdcbf;
+  background: #e1ebd3;
+  color: #284b39;
+  font-weight: 700;
+}
+
+.ace-site-account {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 205px;
+  color: #284b39;
+  font-size: 12px;
+}
+
+.ace-site-account > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ace-site-account > :is(a, button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  overflow: hidden;
+  border: 1px solid #ccd7c1;
+  border-radius: 30px;
+  background: #e9edde;
+  color: #284b39;
+  font: inherit;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.ace-site-account > :is(a, button):hover {
+  background: #e0e8d4;
+}
+
+.ace-site-account :is([data-account-name], #account-name) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ace-account-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.ace-account-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #dae0cf;
+  border-radius: 50%;
+  background: #e8edde;
+  color: #284b39;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ace-communication-nav {
+  width: 100%;
+  max-width: var(--ace-shell-width, 1264px);
+  margin: 0 auto;
+  padding: 24px var(--ace-shell-gutter, 48px) 0;
+  color: #18332d;
+  font: 500 13px/1.5 Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.ace-communication-nav__inner {
+  display: flex;
+  gap: 10px;
+}
+
+.ace-communication-tab {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 11px 18px;
+  border: 1px solid #d9dfd4;
+  border-radius: 12px;
+  background: #fffef9;
+  color: #586d5e;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.ace-communication-tab:hover {
+  background: #edf1e5;
+  color: #18332d;
+}
+
+.ace-communication-tab[aria-current="page"] {
+  border-color: #c4d4b4;
+  background: #e3ecd6;
+  color: #284b39;
+}
+
+.ace-communication-tab__label {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ace-communication-tab__description {
+  color: #62736a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ace-site-brand:focus-visible,
+.ace-primary-link:focus-visible,
+.ace-site-account :is(a, button):focus-visible,
+.ace-communication-tab:focus-visible {
+  outline: 3px solid #476ec4;
+  outline-offset: 2px;
+}
+
+/* These selectors adjust only the named page's outer frame and main title. */
+body[data-ace-page="home"] > .site-wrap,
+body[data-ace-page="files"] > .site-wrap,
+body[data-ace-page="companion"] > .site-wrap {
+  width: 100%;
+  max-width: var(--ace-shell-width);
+  margin-inline: auto;
+  padding-inline: var(--ace-shell-gutter);
+}
+
+body[data-ace-page="call"] > #call-main,
+body[data-ace-page="wifi"] > main {
+  width: 100%;
+  max-width: var(--ace-shell-width);
+  margin-inline: auto;
+  padding: var(--ace-page-space) var(--ace-shell-gutter) 64px;
+}
+
+body[data-ace-page="mailbox"] > .layout {
+  max-width: var(--ace-shell-width);
+  margin-inline: auto;
+}
+
+body[data-ace-page="mailbox"] > .layout > .sidebar {
+  padding-top: var(--ace-page-space);
+  padding-left: var(--ace-shell-gutter);
+}
+
+body[data-ace-page="mailbox"] > .layout > main {
+  padding-top: var(--ace-page-space);
+  padding-right: var(--ace-shell-gutter);
+}
+
+body[data-ace-page="files"] .files-intro,
+body[data-ace-page="companion"] .companion-hero {
+  padding-top: var(--ace-page-space);
+}
+
+body[data-ace-page="call"] .call-intro .eyebrow,
+body[data-ace-page="files"] .files-intro .eyebrow,
+body[data-ace-page="companion"] .companion-hero .eyebrow,
+body[data-ace-page="wifi"] > main > .eyebrow {
+  margin: 0 0 16px;
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+
+body[data-ace-page="call"] .call-intro h1,
+body[data-ace-page="files"] #files-title,
+body[data-ace-page="companion"] #hero-title,
+body[data-ace-page="mailbox"] #page-title,
+body[data-ace-page="wifi"] > main > h1 {
+  font-size: var(--ace-page-title-size);
+  font-weight: 720;
+  letter-spacing: -.035em;
+  line-height: 1.25;
+}
+
+body[data-ace-page="call"] .call-intro h1,
+body[data-ace-page="wifi"] > main > h1 {
+  margin: 0 0 20px;
+}
+
+/* Keep the Wi-Fi form readable inside the same aligned outer page frame. */
+body[data-ace-page="wifi"] > main > :is(.version, .steps, .panel, .fallback, .footnote) {
+  max-width: 720px;
+}
+
+body[data-ace-page="play"] > .ace-site-header {
+  flex-shrink: 0;
+}
+
+body[data-ace-page="support"] > .support-main {
+  max-width: var(--ace-shell-width);
+  padding-inline: var(--ace-shell-gutter);
+  padding-top: var(--ace-page-space);
+}
+
+body[data-ace-page="support"] #support-title {
+  font-size: var(--ace-page-title-size);
+}
+
+body[data-ace-page="play"] .title-screen {
+  min-height: calc(100svh - var(--ace-site-header-height, 88px));
+}
+
+body[data-ace-page="play"] .game-screen {
+  top: var(--ace-site-header-height, 88px);
+}
+body[data-ace-page="home"] .about-contact-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 12px;
+  color: #284b39;
+  text-underline-offset: 4px;
+}
+body[data-ace-page="home"] footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 1060px) {
+  body[data-ace-page] {
+    --ace-shell-gutter: 28px;
+  }
+
+  .ace-site-header__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 18px;
+    padding-block: 12px 9px;
+  }
+
+  .ace-primary-nav {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin-inline: -5px;
+  }
+
+  .ace-primary-nav__list {
+    justify-content: flex-start;
+  }
+
+  .ace-site-account {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 650px) {
+  body[data-ace-page] {
+    --ace-shell-gutter: 20px;
+    --ace-page-space: 28px;
+    --ace-page-title-size: 30px;
+  }
+
+  .ace-site-header__inner {
+    gap: 3px 12px;
+    padding-top: 9px;
+    padding-bottom: 6px;
+  }
+
+  .ace-site-brand {
+    gap: 8px;
+    font-size: 15px;
+    letter-spacing: 0;
+  }
+
+  .ace-site-brand__mark {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+    font-size: 22px;
+  }
+
+  .ace-primary-link {
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+
+  .ace-site-account {
+    max-width: min(37vw, 170px);
+    font-size: 11px;
+  }
+
+  .ace-site-account > :is(a, button) {
+    padding-inline: 10px;
+  }
+
+  .ace-communication-nav {
+    padding-top: 18px;
+  }
+
+  .ace-communication-nav__inner {
+    gap: 8px;
+  }
+
+  .ace-communication-tab {
+    flex: 1 1 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 64px;
+    padding: 11px 14px;
+  }
+
+  body[data-ace-page="mailbox"] > .layout > .sidebar {
+    padding: 14px var(--ace-shell-gutter);
+  }
+
+  body[data-ace-page="mailbox"] > .layout > main {
+    padding-inline: var(--ace-shell-gutter);
+  }
+}
+
+@media (forced-colors: active) {
+  .ace-primary-link[aria-current="page"],
+  .ace-communication-tab[aria-current="page"] {
+    border-color: Highlight;
+  }
+}
