@@ -1,6 +1,7 @@
 export const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 export const CONTACT_SUCCESS = '已收到，会尽快回复';
 const GENERIC_FAILURE = '暂时无法发送，请稍后重试。';
+const turnstileLoads = new WeakMap();
 
 export function validateContactFields(input) {
   const values = {
@@ -22,8 +23,10 @@ export function validContactConfig(value) {
 }
 
 export function loadTurnstile(win, doc) {
+  const pending = turnstileLoads.get(win);
+  if (pending) return pending;
   if (win.turnstile && typeof win.turnstile.render === 'function') return Promise.resolve(win.turnstile);
-  return new Promise((resolve, reject) => {
+  const loading = new Promise((resolve, reject) => {
     const script = doc.createElement('script');
     let settled = false;
     const finish = (error) => {
@@ -36,16 +39,21 @@ export function loadTurnstile(win, doc) {
     const timer = win.setTimeout(() => finish(new Error('Verification unavailable')), 15_000);
     script.src = TURNSTILE_SCRIPT;
     script.async = true;
-    script.defer = true;
     script.onload = () => {
       const api = win.turnstile;
       if (!api || typeof api.render !== 'function') { finish(new Error('Verification unavailable')); return; }
-      if (typeof api.ready === 'function') api.ready(() => finish());
-      else finish();
+      // An async script's load event is the readiness signal; ready() rejects
+      // async/defer integrations even after api.js has finished executing.
+      finish();
     };
     script.onerror = () => finish(new Error('Verification unavailable'));
-    doc.head.append(script);
+    try { doc.head.append(script); }
+    catch { finish(new Error('Verification unavailable')); }
   });
+  turnstileLoads.set(win, loading);
+  const release = () => { if (turnstileLoads.get(win) === loading) turnstileLoads.delete(win); };
+  void loading.then(release, release);
+  return loading;
 }
 
 export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurnstile(win, doc) }) {
