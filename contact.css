@@ -35,6 +35,17 @@
 .ace-contact-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
 .ace-contact-verification { min-width: 0; margin-top: 25px; }
 #contact-turnstile { min-height: 65px; }
+.ace-contact-captcha > label { display: block; color: #284b39; font-size: 13px; font-weight: 650; line-height: 1.6; }
+.ace-contact-captcha > label > span { margin-left: 5px; color: #78846e; font-size: 11px; font-weight: 400; }
+.ace-contact-captcha-image { display: block; width: fit-content; max-width: 100%; min-height: 80px; margin-top: 9px; padding: 0; overflow: auto; border: 1px solid #d5dfcd; border-radius: 10px; background: #fbfcf7; cursor: zoom-in; touch-action: manipulation; }
+.ace-contact-captcha-image > img { display: block; max-width: 100%; height: auto; }
+.ace-contact-captcha[data-expanded="true"] .ace-contact-captcha-image { width: 100%; cursor: zoom-out; }
+.ace-contact-captcha[data-expanded="true"] .ace-contact-captcha-image > img { width: 440px; max-width: none; }
+.ace-contact-captcha-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.ace-contact-captcha-row > input { flex: 1; width: 0; min-width: 0; min-height: 48px; padding: 10px 14px; border: 1px solid #d5dfcd; border-radius: 10px; background: #fbfcf7; color: #18332d; font: 16px/1.6 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; letter-spacing: .14em; }
+.ace-contact-captcha-row > input[aria-invalid="true"] { border-color: #ae644d; }
+.ace-contact-captcha-row > input:disabled { background: #f1f3eb; color: #6f7c67; }
+.ace-contact-captcha-row > .ace-contact-retry { flex: none; min-height: 48px; margin: 0; font-size: 14px; }
 .ace-contact-retry { min-height: 44px; margin-top: 8px; padding: 9px 14px; border: 1px solid #d3ddc9; border-radius: 9px; background: #eef3e5; color: #3c5c3c; font: inherit; font-size: 12px; cursor: pointer; touch-action: manipulation; }
 .ace-contact-submit { display: flex; align-items: center; justify-content: space-between; gap: 15px; width: 100%; min-height: 50px; margin-top: 21px; padding: 13px 18px; border: 1px solid #18332d; border-radius: 10px; background: #18332d; color: #fffef9; font: inherit; font-size: 14px; font-weight: 650; line-height: 1.5; cursor: pointer; touch-action: manipulation; }
 .ace-contact-submit:hover:not(:disabled) { background: #2b4b3c; }

@@ -24,7 +24,10 @@
       <ul class="ace-primary-nav__list">
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/play/">一起玩</a></li>
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/radar/">折扣雷达</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/learn/">公益课堂</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/community/">作品社区</a></li>
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/connect/">通话与信箱</a></li>
+        <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/friends/">好友</a></li>
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/files/">文件传输</a></li>
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/companion/">设备中心</a></li>
         <li class="ace-primary-nav__item"><a class="ace-primary-link" href="/support/">支持与隐私</a></li>
@@ -74,8 +77,19 @@
             </div>
           </fieldset>
           <div class="ace-contact-verification">
-            <div id="contact-turnstile"></div>
-            <p id="contact-verification-status" class="ace-contact-field-help">验证会在联系服务可用时显示。</p>
+            <div id="contact-turnstile" hidden></div>
+            <div id="contact-captcha" class="ace-contact-captcha" data-expanded="false" hidden>
+              <label for="contact-captcha-answer">图中的验证码 <span>六位字母或数字</span></label>
+              <button id="contact-captcha-zoom" class="ace-contact-captcha-image" type="button" aria-label="放大或缩小图片验证码" aria-pressed="false" disabled>
+                <img id="contact-captcha-image" alt="图片验证码；请填写图中的六位字母或数字" width="220" height="80" hidden>
+              </button>
+              <div class="ace-contact-captcha-row">
+                <input id="contact-captcha-answer" type="text" maxlength="6" pattern="[A-Za-z0-9]{6}" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="contact-captcha-help contact-verification-status" disabled>
+                <button id="contact-captcha-refresh" class="ace-contact-retry" type="button" aria-label="刷新图片验证码" disabled>换一张</button>
+              </div>
+              <p id="contact-captcha-help" class="ace-contact-field-help">看不清时可点击图片放大，或换一张。验证码三分钟内有效。</p>
+            </div>
+            <p id="contact-verification-status" class="ace-contact-field-help" role="status" aria-live="polite" aria-atomic="true">验证会在联系服务可用时显示。</p>
             <button id="contact-retry" class="ace-contact-retry" type="button" hidden>重新检查 / 验证</button>
           </div>
           <button id="contact-submit" class="ace-contact-submit" type="submit" disabled>发送留言 <span aria-hidden="true">↗</span></button>

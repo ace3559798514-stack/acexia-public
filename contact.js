@@ -2,6 +2,7 @@ export const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/
 export const CONTACT_SUCCESS = '已收到，会尽快回复';
 const GENERIC_FAILURE = '暂时无法发送，请稍后重试。';
 const turnstileLoads = new WeakMap();
+export const LOCAL_VERIFICATION = 'local-captcha-v1';
 
 export function validateContactFields(input) {
   const values = {
@@ -18,8 +19,28 @@ export function validateContactFields(input) {
 }
 
 export function validContactConfig(value) {
-  return !!value && value.enabled === true && typeof value.siteKey === 'string'
+  if (!value || value.enabled !== true) return false;
+  if (value.verification === LOCAL_VERIFICATION) return value.siteKey === '';
+  return value.verification === undefined && typeof value.siteKey === 'string'
     && /^[A-Za-z0-9_-]{3,100}$/u.test(value.siteKey);
+}
+
+export function validContactChallenge(value) {
+  if (!value || typeof value.token !== 'string' || value.token.length < 16 || value.token.length > 2048
+    || !/^[\x21-\x7e]+$/u.test(value.token) || typeof value.image !== 'string'
+    || value.image.length < 44 || value.image.length > 131072 || value.image.length % 4 !== 0
+    || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(value.image)
+    || !Number.isSafeInteger(value.width) || value.width < 32 || value.width > 640
+    || !Number.isSafeInteger(value.height) || value.height < 16 || value.height > 240
+    || !Number.isSafeInteger(value.expiresAt) || value.expiresAt < 1
+    || !Number.isSafeInteger(value.expiresInMs) || value.expiresInMs < 1 || value.expiresInMs > 180000) return false;
+  try {
+    const prefix = Uint8Array.from(atob(value.image.slice(0, 44)), char => char.charCodeAt(0));
+    const view = new DataView(prefix.buffer);
+    return [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => prefix[index] === byte)
+      && view.getUint32(8) === 13 && view.getUint32(12) === 0x49484452
+      && view.getUint32(16) === value.width && view.getUint32(20) === value.height;
+  } catch { return false; }
 }
 
 export function loadTurnstile(win, doc) {
@@ -56,7 +77,32 @@ export function loadTurnstile(win, doc) {
   return loading;
 }
 
-export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurnstile(win, doc) }) {
+export function decodeContactCaptchaImage(src, { doc, signal }) {
+  return new Promise((resolve, reject) => {
+    const image = doc.createElement('img');
+    let settled = false;
+    const cancelled = () => finish(new Error('Verification image unavailable'));
+    const finish = (error) => {
+      if (settled) return;
+      settled = true;
+      image.onload = null;
+      image.onerror = null;
+      signal.removeEventListener('abort', cancelled);
+      image.removeAttribute('src');
+      if (error) reject(error);
+      else resolve();
+    };
+    image.onload = () => finish();
+    image.onerror = () => finish(new Error('Verification image unavailable'));
+    signal.addEventListener('abort', cancelled, { once: true });
+    if (signal.aborted) { cancelled(); return; }
+    try { image.src = src; }
+    catch { finish(new Error('Verification image unavailable')); }
+  });
+}
+
+export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurnstile(win, doc), clock = () => win.performance?.now() ?? Date.now(),
+  decodeCaptchaImage = (src, { signal }) => decodeContactCaptchaImage(src, { doc, signal }) }) {
   const get = (id) => doc.getElementById(id);
   const form = get('contact-form');
   if (!form) return null;
@@ -66,17 +112,30 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
   const status = get('contact-status');
   const verificationStatus = get('contact-verification-status');
   const container = get('contact-turnstile');
+  const captcha = get('contact-captcha');
+  const captchaImage = get('contact-captcha-image');
+  const captchaAnswer = get('contact-captcha-answer');
+  const captchaRefresh = get('contact-captcha-refresh');
+  const captchaZoom = get('contact-captcha-zoom');
   const controls = { name: get('contact-name'), email: get('contact-email'), message: get('contact-message'), website: get('contact-website') };
-  const state = { enabled: false, busy: false, token: '', widget: null, widgetId: null, disposed: false, epoch: 0 };
+  const state = { enabled: false, busy: false, token: '', widget: null, widgetId: null, disposed: false, epoch: 0,
+    verification: null, challengeEpoch: 0, expiresAt: 0 };
   let configController;
   let sendController;
+  let challengeController;
+  let expiryTimer;
   function tell(message, phase = '') {
     status.textContent = message;
     status.dataset.state = phase;
   }
   function ready() {
-    submit.disabled = !state.enabled || !state.token || state.busy || state.disposed;
+    const local = state.verification === LOCAL_VERIFICATION;
+    const verified = !!state.token && (!local || state.expiresAt > clock() && /^[A-Z0-9]{6}$/u.test(captchaAnswer.value));
+    submit.disabled = !state.enabled || !verified || state.busy || state.disposed;
     retry.disabled = state.busy;
+    if (captchaAnswer) captchaAnswer.disabled = !local || !state.enabled || !state.token || state.busy || state.disposed;
+    if (captchaRefresh) captchaRefresh.disabled = !local || !state.enabled || state.busy || state.disposed;
+    if (captchaZoom) captchaZoom.disabled = !local || !state.token || state.busy || state.disposed;
   }
   function busy(value) {
     state.busy = value;
@@ -97,12 +156,90 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
     get('contact-message-count').textContent = controls.message.value.length + ' / 5000';
   }
   function resetVerification(message = '请完成验证后发送。') {
+    if (state.verification === LOCAL_VERIFICATION) return refreshCaptcha();
     state.token = '';
     verificationStatus.textContent = message;
     ready();
     if (!state.widget || state.widgetId === null) return;
     try { state.widget.reset(state.widgetId); }
     catch { retry.hidden = false; verificationStatus.textContent = '验证暂时不可用，请重新检查 / 验证。'; }
+  }
+  function clearCaptcha() {
+    win.clearTimeout(expiryTimer);
+    state.token = '';
+    state.expiresAt = 0;
+    if (captchaAnswer) { captchaAnswer.value = ''; captchaAnswer.setAttribute('aria-invalid', 'false'); }
+    if (captchaImage) { captchaImage.hidden = true; captchaImage.removeAttribute('src'); }
+    if (captcha) captcha.dataset.expanded = 'false';
+    if (captchaZoom) captchaZoom.setAttribute('aria-pressed', 'false');
+    ready();
+  }
+  function expireCaptcha() {
+    clearCaptcha();
+    verificationStatus.textContent = '验证码已过期，请换一张后重新填写。';
+  }
+  async function refreshCaptcha({ focus = false } = {}) {
+    if (state.busy || state.disposed || state.verification !== LOCAL_VERIFICATION) return;
+    const epoch = state.epoch, challengeEpoch = ++state.challengeEpoch;
+    challengeController?.abort();
+    const controller = new AbortController();
+    challengeController = controller;
+    clearCaptcha();
+    verificationStatus.textContent = '正在加载新的验证码…';
+    const current = () => !state.disposed && epoch === state.epoch && challengeEpoch === state.challengeEpoch;
+    try {
+      const requestedAt = clock();
+      const response = await request('/api/contact/challenge', { method: 'GET', cache: 'no-store', headers: { Accept: 'application/json' } }, controller);
+      if (!response.ok) throw new Error('Verification unavailable');
+      const challenge = await response.json();
+      if (!current()) return;
+      if (!validContactChallenge(challenge)) throw new Error('Verification unavailable');
+      // The remaining lifetime comes from the server before HTTP delivery.
+      // Start locally before the request so a delayed response cannot extend
+      // it past server expiry; decoding time also stays inside this budget.
+      const deadline = requestedAt + challenge.expiresInMs;
+      if (deadline <= clock()) { expireCaptcha(); return; }
+      const src = 'data:image/png;base64,' + challenge.image;
+      await waitForCaptchaImage(src, controller);
+      if (!current()) return;
+      if (deadline <= clock()) { expireCaptcha(); return; }
+      captchaImage.src = src;
+      captchaImage.width = challenge.width;
+      captchaImage.height = challenge.height;
+      captchaImage.hidden = false;
+      state.token = challenge.token;
+      state.expiresAt = deadline;
+      expiryTimer = win.setTimeout(() => { if (current()) expireCaptcha(); }, deadline - clock());
+      verificationStatus.textContent = '请填写图中的六位字母或数字后发送。';
+      ready();
+      if (focus) captchaAnswer.focus();
+    } catch {
+      if (!current()) return;
+      clearCaptcha();
+      verificationStatus.textContent = '验证码暂时无法加载，请换一张或稍后重试。';
+      retry.hidden = false;
+    }
+  }
+  function waitForCaptchaImage(src, controller) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let timer = null;
+      const cancelled = () => finish(new Error('Verification image unavailable'));
+      const finish = (error) => {
+        if (settled) return;
+        settled = true;
+        win.clearTimeout(timer);
+        controller.signal.removeEventListener('abort', cancelled);
+        if (error) reject(error);
+        else resolve();
+      };
+      controller.signal.addEventListener('abort', cancelled, { once: true });
+      if (controller.signal.aborted) { cancelled(); return; }
+      timer = win.setTimeout(() => controller.abort(), 30_000);
+      // Image decoding is separately bounded after fetch has completed. The
+      // outer abort also releases a custom decoder that never settles.
+      Promise.resolve().then(() => decodeCaptchaImage(src, { signal: controller.signal })).then(() => finish(), () => finish(new Error('Verification image unavailable')));
+    });
   }
   async function request(url, options, controller) {
     const timer = win.setTimeout(() => controller.abort(), 30_000);
@@ -116,6 +253,12 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
     configController = new AbortController();
     state.enabled = false;
     state.token = '';
+    challengeController?.abort();
+    ++state.challengeEpoch;
+    clearCaptcha();
+    state.verification = null;
+    if (captcha) captcha.hidden = true;
+    container.hidden = true;
     ready();
     retry.hidden = true;
     tell('正在检查联系服务…');
@@ -134,6 +277,17 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
         retry.hidden = false;
         return;
       }
+      if (config.verification === LOCAL_VERIFICATION) {
+        if (!captcha || !captchaImage || !captchaAnswer || !captchaRefresh || !captchaZoom) throw new Error('Verification unavailable');
+        state.verification = LOCAL_VERIFICATION;
+        state.enabled = true;
+        captcha.hidden = false;
+        tell('填写留言并完成验证后，就可以发送。');
+        await refreshCaptcha();
+        return;
+      }
+      state.verification = 'turnstile';
+      container.hidden = false;
       verificationStatus.textContent = '正在加载验证…';
       const api = await loadWidget();
       if (state.disposed || epoch !== state.epoch) return;
@@ -185,6 +339,18 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
       tell(state.enabled ? '请先完成验证，再发送留言。' : '联系服务尚未就绪，暂时无法发送。', 'error');
       return;
     }
+    if (state.verification === LOCAL_VERIFICATION && state.expiresAt <= clock()) {
+      expireCaptcha();
+      tell('验证码已过期，请换一张后发送。', 'error');
+      captchaRefresh.focus();
+      return;
+    }
+    if (state.verification === LOCAL_VERIFICATION && !/^[A-Z0-9]{6}$/u.test(captchaAnswer.value)) {
+      tell('请填写图中的六位字母或数字。', 'error');
+      captchaAnswer.setAttribute('aria-invalid', 'true');
+      captchaAnswer.focus();
+      return;
+    }
     const result = validateContactFields(Object.fromEntries(Object.entries(controls).map(([name, input]) => [name, input.value])));
     showErrors(result.errors);
     if (!result.valid) {
@@ -192,7 +358,8 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
       controls[Object.keys(result.errors)[0]].focus();
       return;
     }
-    const payload = { ...result.values, turnstileToken: state.token };
+    const payload = { ...result.values, ...(state.verification === LOCAL_VERIFICATION
+      ? { captchaToken: state.token, captchaAnswer: captchaAnswer.value } : { turnstileToken: state.token }) };
     sendController = new AbortController();
     busy(true);
     tell('正在发送留言…');
@@ -202,6 +369,13 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
       }, sendController);
       if (state.disposed) return;
       if (response.status === 429) { tell('发送过于频繁，请稍后再试。', 'error'); return; }
+      if (response.status === 400) {
+        tell(state.verification === LOCAL_VERIFICATION
+          ? '验证或填写内容未通过，请检查内容并重新填写验证码后发送。'
+          : '验证或填写内容未通过，请检查内容并重新验证后发送。', 'error');
+        return;
+      }
+      if (response.status === 403) { tell('页面来源无法验证，请刷新本站页面后重试。', 'error'); return; }
       if (!response.ok) { tell(GENERIC_FAILURE, 'error'); return; }
       const confirmed = await response.json().catch(() => null);
       if (state.disposed) return;
@@ -215,18 +389,32 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
     } finally {
       if (!state.disposed) {
         busy(false);
-        resetVerification();
+        await resetVerification();
       }
     }
   }
   const retryConfig = () => { void checkConfig(); };
   const inputChanged = () => { countMessage(); };
+  const captchaChanged = () => {
+    captchaAnswer.value = captchaAnswer.value.toUpperCase().replace(/[^A-Z0-9]/gu, '').slice(0, 6);
+    captchaAnswer.setAttribute('aria-invalid', 'false');
+    ready();
+  };
+  const refreshClicked = () => refreshCaptcha({ focus: true });
+  const zoomClicked = () => {
+    const expanded = captcha.dataset.expanded !== 'true';
+    captcha.dataset.expanded = String(expanded);
+    captchaZoom.setAttribute('aria-pressed', String(expanded));
+  };
   const destroy = () => {
     state.disposed = true;
     ++state.epoch;
+    ++state.challengeEpoch;
     state.token = '';
     configController?.abort();
     sendController?.abort();
+    challengeController?.abort();
+    clearCaptcha();
     if (state.widget && state.widgetId !== null) {
       try { state.widget.remove(state.widgetId); } catch { /* No provider details enter the page. */ }
     }
@@ -234,10 +422,16 @@ export function initContactForm({ doc, win, fetcher, loadWidget = () => loadTurn
     form.removeEventListener('submit', send);
     controls.message.removeEventListener('input', inputChanged);
     retry.removeEventListener('click', retryConfig);
+    captchaAnswer?.removeEventListener('input', captchaChanged);
+    captchaRefresh?.removeEventListener('click', refreshClicked);
+    captchaZoom?.removeEventListener('click', zoomClicked);
   };
   form.addEventListener('submit', send);
   controls.message.addEventListener('input', inputChanged);
   retry.addEventListener('click', retryConfig);
+  captchaAnswer?.addEventListener('input', captchaChanged);
+  captchaRefresh?.addEventListener('click', refreshClicked);
+  captchaZoom?.addEventListener('click', zoomClicked);
   win.addEventListener('pagehide', destroy, { once: true });
   win.addEventListener('pageshow', (event) => { if (event.persisted) win.location.reload(); });
   countMessage();

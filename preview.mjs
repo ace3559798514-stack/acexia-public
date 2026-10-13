@@ -13,7 +13,8 @@ const files = new Map([
   ['/contact.js', ['contact.js', 'text/javascript; charset=utf-8']],
 ]);
 const demoRoutes = new Map([
-  ['/', 'home'], ['/play/', 'play'], ['/radar/', 'radar'], ['/connect/', 'call'],
+  ['/', 'home'], ['/play/', 'play'], ['/radar/', 'radar'],
+  ['/learn/', 'learn'], ['/community/', 'community'], ['/friends/', 'friends'], ['/connect/', 'call'],
   ['/connect/mailbox/', 'mailbox'], ['/files/', 'files'], ['/companion/', 'companion'],
   ['/support/', 'support'],
 ]);

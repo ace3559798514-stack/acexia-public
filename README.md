@@ -28,18 +28,27 @@ node preview.mjs
 node preview.mjs 4180
 ```
 
-预览只监听本机地址。导航入口用于展示共享页头的状态，各业务入口不会启动正式功能。关于页地址为 `/about/`。
+预览只监听本机地址。关于页地址为 `/about/`；`/play/`、`/radar/`、`/learn/`、`/community/`、`/friends/`、`/connect/`、`/connect/mailbox/`、`/files/`、`/companion/` 和 `/support/` 仅展示共享页头的当前入口状态，不会启动业务功能。
+
+## 同步来源与候选状态
+
+本次界面片段同步于 2026-10-13，来源版本为 `09f7057a751f30c086427db639f7a454148f9cb3`（网站 PR #23 的候选界面）。新增公益课堂、作品社区与好友导航，以及公益课堂入口插画。
+
+这些导航展示候选界面，不代表对应业务已全部上线：2026-10-13 核对时，正式站点的作品社区入口尚未上线。本地预览中的业务页面只显示导航状态，不能发布分享、登录账号或读取正式站点数据。
 
 ## 联系表单依赖
 
-联系表单使用同源公开接口：
+联系表单只请求当前页面的同源公开接口。正式站点目前使用本站图片验证码：
 
-- `GET /api/contact/config`：公开配置，响应为 `{ enabled: boolean, siteKey: string }`（未配置时为空字符串）。
-- `POST /api/contact`：发送 `{ name, email, message, website, turnstileToken }`。
+- `GET /api/contact/config`：本地验证码配置为 `{ enabled: boolean, verification: 'local-captcha-v1', siteKey: '' }`。
+- `GET /api/contact/challenge`：返回 `{ token, image, width, height, expiresAt, expiresInMs }`；`image` 为 PNG 的 base64 图片，用户填写图中的六位字母或数字。
+- `POST /api/contact`：发送 `{ name, email, message, website, captchaToken, captchaAnswer }`。
 
-名字、回复邮箱及留言由访问者填写；`website` 为不可见的防垃圾字段。表单通过 Cloudflare 官方 explicit Turnstile API 完成验证，只有服务端返回成功确认 `{ ok: true }` 时才显示“已收到，会尽快回复”。
+名字、回复邮箱及留言由访问者填写；`website` 为不可见的防垃圾字段。验证码刷新、图片加载或网络延迟不会延长服务端有效期。只有服务端返回成功确认 `{ ok: true }` 时才显示“已收到，会尽快回复”。
 
-本地预览没有这些接口，因此联系表单会明确显示服务不可用并保持禁止发送。实际发送依赖正式站点的同源服务和有效验证配置，不能通过这个展示包单独完成。
+前端保留旧部署的 Turnstile 兼容模式：当配置没有 `verification`、但提供非空 `siteKey` 时，才加载 Cloudflare 官方 explicit Turnstile API，并改用 `turnstileToken` 提交验证结果。本站图片验证码模式不加载该第三方验证组件。
+
+本地预览没有以上 API，GET 请求返回 404，POST 请求返回 405；联系表单明确显示服务不可用并保持禁止发送。预览不代理正式 API、不模拟验证成功，也不会把留言跨源发到正式站点。实际发送依赖所在站点的同源后端，不能通过这个展示包单独完成。
 
 ## 版权
 
