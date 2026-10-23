@@ -1,8 +1,10 @@
 const primaryDestinations = Object.freeze([
-  { key: 'play', href: '/play/', label: '一起玩' },
+  { key: 'play', href: '/play/', label: '星潮同渡' },
+  { key: 'tideland', href: '/games/tideland/', label: '潮汐小岛' },
   { key: 'radar', href: '/radar/', label: '折扣雷达' },
-  { key: 'learn', href: '/learn/', label: '公益课堂' },
-  { key: 'community', href: '/community/', label: '作品社区' },
+  { key: 'learn', href: '/learn/', label: '建模课堂' },
+  { key: 'city', href: '/learn/works/douding-city-hq/', label: '豆丁市' },
+  { key: 'community', href: '/community/', label: '社区' },
   { key: 'connect', href: '/connect/', label: '通话与信箱' },
   { key: 'friends', href: '/friends/', label: '好友' },
   { key: 'files', href: '/files/', label: '文件传输' },
