@@ -74,6 +74,7 @@ body[data-ace-page] {
 
 .ace-primary-nav {
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
